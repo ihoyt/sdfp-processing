@@ -198,7 +198,12 @@ def get_fiman_atm(id, begin_date, end_date):
              'sensor_id' : fiman_gauge_keys.iloc[0]["sensor_id"]}
     print(query)    # FOR DEBUGGING
     
-    r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
+    print("QUERYING FIMAN API")
+    try:
+        r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
+    except requests.exceptions.Timeout:
+        return None
+        
     j = r.content
     print(j)
     doc = xmltodict.parse(j)
