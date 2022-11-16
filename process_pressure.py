@@ -198,7 +198,6 @@ def get_fiman_atm(id, begin_date, end_date):
              'sensor_id' : fiman_gauge_keys.iloc[0]["sensor_id"]}
     print(query)    # FOR DEBUGGING
     
-    print("QUERYING FIMAN API")
     try:
         r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
         j = r.content
@@ -292,11 +291,11 @@ def interpolate_atm_data(x, debug = True):
         if(atm_data.empty):            
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
             pass
-                        
-        combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
-        combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
-                
-        interpolated_data = pd.concat([interpolated_data, combined_data.loc[combined_data["place"].notna()].reset_index()[list(selected_data)]])
+        else:                
+            combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
+            combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
+                    
+            interpolated_data = pd.concat([interpolated_data, combined_data.loc[combined_data["place"].notna()].reset_index()[list(selected_data)]])
 
         if debug == True:
             print("####################################")
