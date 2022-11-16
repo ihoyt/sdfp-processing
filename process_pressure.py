@@ -202,7 +202,7 @@ def get_fiman_atm(id, begin_date, end_date):
         r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
         j = r.content
     except requests.exceptions.Timeout:
-        j = "<empty></empty>"
+        return pd.DataFrame()
 
     print(j)
     doc = xmltodict.parse(j)
