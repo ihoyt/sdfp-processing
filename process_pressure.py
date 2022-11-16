@@ -432,7 +432,7 @@ def main():
     #print(prepared_data.to_string())    # FOR DEBUGGING
     
     try: 
-        interpolated_data = interpolate_atm_data(prepared_data)
+        interpolated_data = interpolate_atm_data(prepared_data, False)
     except Exception as ex:
         interpolated_data = pd.DataFrame()
         warnings.warn("Error interpolating atmospheric pressure data.")
