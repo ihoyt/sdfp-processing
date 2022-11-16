@@ -200,10 +200,10 @@ def get_fiman_atm(id, begin_date, end_date):
     
     try:
         r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
-        j = r.content
     except requests.exceptions.Timeout:
         return pd.DataFrame()
 
+    j = r.content
     print(j)
     doc = xmltodict.parse(j)
     
@@ -432,7 +432,7 @@ def main():
     #print(prepared_data.to_string())    # FOR DEBUGGING
     
     try: 
-        interpolated_data = interpolate_atm_data(prepared_data, False)
+        interpolated_data = interpolate_atm_data(prepared_data)
     except Exception as ex:
         interpolated_data = pd.DataFrame()
         warnings.warn("Error interpolating atmospheric pressure data.")
