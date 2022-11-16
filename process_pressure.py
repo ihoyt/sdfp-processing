@@ -201,10 +201,10 @@ def get_fiman_atm(id, begin_date, end_date):
     print("QUERYING FIMAN API")
     try:
         r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
+        j = r.content
     except requests.exceptions.Timeout:
-        return pd.DataFrame()
+        j = "<empty></empty>"
 
-    j = r.content
     print(j)
     doc = xmltodict.parse(j)
     
@@ -280,10 +280,7 @@ def interpolate_atm_data(x, debug = True):
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = range_min.strftime("%Y%m%d %H:%M"),
                                             end_date = range_max.strftime("%Y%m%d %H:%M"))
-                if(atm_data.empty):            
-                    warnings.warn(message = f"No atm pressure data available for: {selected_place}")
-                    pass
-
+                
                 atm_data = pd.concat([atm_data, d]).drop_duplicates()
                 
         if dt_duration < timedelta(days=30):      
