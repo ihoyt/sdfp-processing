@@ -198,10 +198,10 @@ def get_fiman_atm(id, begin_date, end_date):
              'sensor_id' : fiman_gauge_keys.iloc[0]["sensor_id"]}
     print(query)    # FOR DEBUGGING
     
-    try:
-        r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=15)
-    except requests.exceptions.Timeout:
-        return pd.DataFrame()
+    # try:
+    r = requests.get(os.environ.get("FIMAN_URL"), params=query)
+    # except requests.exceptions.Timeout:
+    #     return pd.DataFrame()
 
     j = r.content
     print(j)
