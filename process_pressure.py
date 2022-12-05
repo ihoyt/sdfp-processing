@@ -199,7 +199,7 @@ def get_fiman_atm(id, begin_date, end_date):
     print(query)    # FOR DEBUGGING
     
     # try:
-    r = requests.get(os.environ.get("FIMAN_URL"), params=query)
+    r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=600)
     # except requests.exceptions.Timeout:
     #     return pd.DataFrame()
 
