@@ -203,6 +203,7 @@ def get_fiman_atm(id, begin_date, end_date):
     # except requests.exceptions.Timeout:
     #     return pd.DataFrame()
 
+    print(r)
     j = r.content
     print(j)
     doc = xmltodict.parse(j)
