@@ -405,7 +405,7 @@ def main():
     max_date = pd.read_sql_query("SELECT max(date) as date FROM sensor_water_depth", engine)
     test = max_date.at[0, 'date']
     print(test)
-    test = datetime.strptime(test)
+    test = datetime.strptime(test, "%Y-%m-%d %H:%M:%S+00:00")
     print(test)
     return
     try:
