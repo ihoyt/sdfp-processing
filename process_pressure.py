@@ -398,6 +398,9 @@ def main():
     #####################
     # Collect new data  #
     #####################
+    r = requests.get("https://postman-echo.com/ip")
+    print(r)
+    print(r.content)
 
     try:
         new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND WHERE date > '2022-12-05", engine).sort_values(['place','date']).drop_duplicates()
