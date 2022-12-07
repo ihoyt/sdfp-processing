@@ -402,8 +402,10 @@ def main():
     print(r)
     print(r.content)
 
-    max = pd.read_sql_query("SELECT max(date) FROM sensor_water_depth", engine)
-    print(max)
+    max_date = pd.read_sql_query("SELECT max(date) FROM sensor_water_depth", engine)
+    print(max_date[0])
+    test = datetime.datetime.strptime(max_date[0])
+    print(test)
     return
     try:
         new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-11-12'", engine).sort_values(['place','date']).drop_duplicates()
