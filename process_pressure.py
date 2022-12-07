@@ -405,6 +405,7 @@ def main():
     max_date = pd.read_sql_query("SELECT max(date) as date FROM sensor_water_depth", engine)
     max_date = max_date.at[0, 'date']
     max_date= test + timedelta(days=3)
+    print(max_date)
     try:
         new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '{max_date}'", engine).sort_values(['place','date']).drop_duplicates()
     except Exception as ex:
