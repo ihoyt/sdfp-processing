@@ -260,7 +260,7 @@ def interpolate_atm_data(x, debug = True):
         selected_data = x.query("place == @selected_place").copy()
         print(selected_data)
         selected_data["pressure_mb"] = np.nan
-        # print(selected_data)
+        print(selected_data[0])
         
         dt_range = [selected_data["date"].min() - timedelta(seconds = 1800), selected_data["date"].max() + timedelta(seconds = 1800)]
         dt_duration = dt_range[1] - dt_range[0]
