@@ -418,19 +418,23 @@ def main():
     # max_date = max_date.strftime("%Y-%m-%d")
     # print(max_date)
 
-    end_date = os.environ.get('END_DATE')
-    if end_date:
-        try:
-            validate_date(end_date)
-            query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + end_date + "'"
-        except ValueError:
-            print("End date is invalid")
-            return
-    else:
-        query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date > '2022-12-01'"
+    # end_date = os.environ.get('END_DATE')
+    # if end_date:
+    #     try:
+    #         validate_date(end_date)
+    #         query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + end_date + "'"
+    #     except ValueError:
+    #         print("End date is invalid")
+    #         return
+    # else:
+    #     query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date > '2022-12-01'"
 
-    print(query)
-    return
+    # print(query)
+
+    min_date = pd.read_sql_query("SELECT min(date) as date FROM sensor_data WHERE processed='FALSE' AND pressure > 800", engine)
+    max_date = min_date.at[0, 'date'] + timedelta(days=14)
+    max_date = max_date.strftime("%Y-%m-%d")
+    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
 
     try:
         # new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND \"sensor_ID\"='BF_01'", engine).sort_values(['place','date']).drop_duplicates()
