@@ -258,8 +258,9 @@ def interpolate_atm_data(x, debug = True):
         print("for " + selected_place)
         
         selected_data = x.query("place == @selected_place").copy()
-        selected_data["pressure_mb"] = np.nan
         print(selected_data)
+        selected_data["pressure_mb"] = np.nan
+        # print(selected_data)
         
         dt_range = [selected_data["date"].min() - timedelta(seconds = 1800), selected_data["date"].max() + timedelta(seconds = 1800)]
         dt_duration = dt_range[1] - dt_range[0]
@@ -292,9 +293,7 @@ def interpolate_atm_data(x, debug = True):
         if(atm_data.empty):            
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
             pass
-        else:
-            print("ATM DATA FOUND")
-            print(atm_data)                
+        else:              
             combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
             print(combined_data)
             combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
