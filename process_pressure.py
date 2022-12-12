@@ -95,7 +95,7 @@ def get_noaa_atm(id, begin_date, end_date):
     
     r_df = r_df.loc[:,["id","t","v","notes"]].rename(columns = {"id":"id","t":"date","v":"pressure_mb"})
 
-    return r_df
+    return r_df.dropna()
     
 def get_nws_atm(id, begin_date, end_date):
     """Retrieve atmospheric pressure data from the NWS API
@@ -293,10 +293,10 @@ def interpolate_atm_data(x, debug = True):
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
             pass
         else:              
-            for index, row in atm_data.iterrows():
-                print(row['pressure_mb'])
+            # for index, row in atm_data.iterrows():
+            #     print(row['pressure_mb'])
 
-            sys.exit()
+            # sys.exit()
             # print(selected_data.iloc[0])
             # print(atm_data.iloc[0])
             combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
