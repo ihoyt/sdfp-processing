@@ -87,16 +87,12 @@ def get_noaa_atm(id, begin_date, end_date):
     r = requests.get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter/', params=query)
     
     j = r.json()
-
-    print(j["data"])
     
     r_df = pd.DataFrame.from_dict(j["data"])
     
     r_df["t"] = pd.to_datetime(r_df["t"], utc=True); r_df["id"] = str(id); r_df["notes"] = "coop"
     
     r_df = r_df.loc[:,["id","t","v","notes"]].rename(columns = {"id":"id","t":"date","v":"pressure_mb"})
-    
-    print("RETURN NOAA DATA")
 
     return r_df
     
@@ -263,6 +259,7 @@ def interpolate_atm_data(x, debug = True):
         
         selected_data = x.query("place == @selected_place").copy()
         selected_data["pressure_mb"] = np.nan
+        print(selected_data)
         
         dt_range = [selected_data["date"].min() - timedelta(seconds = 1800), selected_data["date"].max() + timedelta(seconds = 1800)]
         dt_duration = dt_range[1] - dt_range[0]
@@ -296,7 +293,8 @@ def interpolate_atm_data(x, debug = True):
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
             pass
         else:
-            print("ATM DATA FOUND")                
+            print("ATM DATA FOUND")
+            print(atm_data)                
             combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
             print(combined_data)
             combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
