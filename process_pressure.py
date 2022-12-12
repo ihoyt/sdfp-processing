@@ -293,7 +293,7 @@ def interpolate_atm_data(x, debug = True):
             pass
         else:              
             print(selected_data.iloc[0])
-            print(atm_data[0])
+            print(atm_data.iloc[0])
             combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
             print(combined_data.iloc[0])
             combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
