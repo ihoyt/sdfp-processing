@@ -417,6 +417,7 @@ def main():
     # max_date = max_date.at[0, 'date'] + timedelta(days=3)
     # max_date = max_date.strftime("%Y-%m-%d")
     # print(max_date)
+
     args = sys.argv[1:]
     if (len(args) == 1)
         try:
@@ -426,10 +427,11 @@ def main():
             print("End date is invalid")
             return
     else
-        query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800"
+        query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date > '2022-12-01'"
 
     print(query)
     return
+
     try:
         # new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND \"sensor_ID\"='BF_01'", engine).sort_values(['place','date']).drop_duplicates()
         new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
