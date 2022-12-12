@@ -418,11 +418,11 @@ def main():
     # max_date = max_date.strftime("%Y-%m-%d")
     # print(max_date)
 
-    args = sys.argv[1:]
-    if len(args) == 1:
+    end_date = os.environ.get('END_DATE')
+    if end_date:
         try:
-            validate_date(args[0])
-            query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + args[0] + "'"
+            validate_date(end_date)
+            query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + end_date + "'"
         except ValueError:
             print("End date is invalid")
             return
