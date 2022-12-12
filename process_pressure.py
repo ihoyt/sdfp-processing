@@ -12,6 +12,7 @@ import numpy as np
 import warnings
 from sqlalchemy import create_engine
 import inspect
+import traceback
 
 ########################
 # Utility functions    #
@@ -207,9 +208,7 @@ def get_fiman_atm(id, begin_date, end_date):
     # except requests.exceptions.Timeout:
     #     return pd.DataFrame()
 
-    print(r)
     j = r.content
-    print(j)
     doc = xmltodict.parse(j)
     
     unnested = doc["onerain"]["response"]["general"]["row"]
@@ -300,7 +299,7 @@ def interpolate_atm_data(x, debug = True):
             print("ATM DATA FOUND")                
             combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
             combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
-                    
+            print(combined_data)
             interpolated_data = pd.concat([interpolated_data, combined_data.loc[combined_data["place"].notna()].reset_index()[list(selected_data)]])
 
         if debug == True:
@@ -445,6 +444,7 @@ def main():
     try: 
         interpolated_data = interpolate_atm_data(prepared_data)
     except Exception as ex:
+        print(traceback.format_exc())
         interpolated_data = pd.DataFrame()
         warnings.warn("Error interpolating atmospheric pressure data.")
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
