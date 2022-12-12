@@ -387,6 +387,12 @@ def format_interpolated_data(x):
     
     return formatted_data.drop_duplicates()
 
+def validate_date(date_text):
+        try:
+            datetime.datetime.strptime(date_text, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+
 
 def main():
     print("Entering main of process_pressure.py")
@@ -411,10 +417,22 @@ def main():
     # max_date = max_date.at[0, 'date'] + timedelta(days=3)
     # max_date = max_date.strftime("%Y-%m-%d")
     # print(max_date)
+    args = sys.argv[1:]
+    if (len(args) == 1)
+        try:
+            validate_date(args[0])
+            query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + args[0] + "'"
+        except ValueError:
+            print("End date is invalid")
+            return
+    else
+        query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800"
 
+    print(query)
+    return
     try:
         # new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND \"sensor_ID\"='BF_01'", engine).sort_values(['place','date']).drop_duplicates()
-        new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800", engine).sort_values(['place','date']).drop_duplicates()
+        new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
     except Exception as ex:
         new_data = pd.DataFrame()
         warnings.warn("Connection to database failed to return data")
