@@ -298,8 +298,8 @@ def interpolate_atm_data(x, debug = True):
         else:
             print("ATM DATA FOUND")                
             combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
-            combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
             print(combined_data)
+            combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
             interpolated_data = pd.concat([interpolated_data, combined_data.loc[combined_data["place"].notna()].reset_index()[list(selected_data)]])
 
         if debug == True:
