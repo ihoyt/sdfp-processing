@@ -97,7 +97,7 @@ def get_noaa_atm(id, begin_date, end_date):
     r_df["notes"] = "coop"
     r_df = r_df.loc[:,["id","t","v","notes"]].rename(columns = {"id":"id","t":"date","v":"pressure_mb"})
 
-    return r_df.dropna()
+    return r_df
     
 def get_nws_atm(id, begin_date, end_date):
     """Retrieve atmospheric pressure data from the NWS API
