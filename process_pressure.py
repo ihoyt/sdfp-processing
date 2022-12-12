@@ -419,7 +419,7 @@ def main():
     # print(max_date)
 
     args = sys.argv[1:]
-    if len(args) == 1
+    if len(args) == 1:
         try:
             validate_date(args[0])
             query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + args[0] + "'"
