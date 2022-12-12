@@ -208,6 +208,7 @@ def get_fiman_atm(id, begin_date, end_date):
     #     return pd.DataFrame()
 
     j = r.content
+    print(j)
     doc = xmltodict.parse(j)
     
     unnested = doc["onerain"]["response"]["general"]["row"]
@@ -437,7 +438,6 @@ def main():
     query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
 
     try:
-        # new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND \"sensor_ID\"='BF_01'", engine).sort_values(['place','date']).drop_duplicates()
         new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
     except Exception as ex:
         new_data = pd.DataFrame()
