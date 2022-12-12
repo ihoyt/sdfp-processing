@@ -95,8 +95,6 @@ def get_noaa_atm(id, begin_date, end_date):
     r_df["t"] = pd.to_datetime(r_df["t"], utc=True) 
     r_df["id"] = str(id) 
     r_df["notes"] = "coop"
-    
-    
     r_df = r_df.loc[:,["id","t","v","notes"]].rename(columns = {"id":"id","t":"date","v":"pressure_mb"})
 
     return r_df.dropna()
