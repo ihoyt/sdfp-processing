@@ -406,7 +406,8 @@ def main():
     # print(max_date)
 
     try:
-        new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND \"sensor_ID\"='BF_01'", engine).sort_values(['place','date']).drop_duplicates()
+        # new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND \"sensor_ID\"='BF_01'", engine).sort_values(['place','date']).drop_duplicates()
+        new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date > '2022-12-10'", engine).sort_values(['place','date']).drop_duplicates()
     except Exception as ex:
         new_data = pd.DataFrame()
         warnings.warn("Connection to database failed to return data")
