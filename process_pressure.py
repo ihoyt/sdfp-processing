@@ -455,7 +455,7 @@ def main():
     # max_date = max_date.strftime("%Y-%m-%d")
     # query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
 
-    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-06-15'"
+    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-06-07'"
 
     try:
         new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
