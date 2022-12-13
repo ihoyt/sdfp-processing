@@ -188,7 +188,7 @@ def get_fiman_atm(id, begin_date, end_date):
     #
 
     # FIMAN API only allows queries up to 31 days ago, check for existing data from other sensors if further back then that
-    month_ago = datetime.datetime.utcnow() - datetime.timedelta(days=31)
+    month_ago = datetime.utcnow() - datetime.timedelta(days=31)
     if begin_date < month_ago:
         pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= @begin_date " +
                             "AND date <= @end_date AND atm_data_src='FIMAN' AND atm_station_id=@id", engine)
