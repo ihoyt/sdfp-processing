@@ -186,7 +186,16 @@ def get_fiman_atm(id, begin_date, end_date):
     # It looks like if the data are not long enough (date-wise), the query to fiman will not return anything
     # at which point this will fail.
     #
-    
+
+    # FIMAN API only allows queries up to 31 days ago, check for existing data from other sensors if further back then that
+    month_ago = datetime.datetime.utcnow() - datetime.timedelta(days=31)
+    if begin_date < month_ago:
+        pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= @begin_date " +
+                            "AND date <= @end_date AND atm_data_src='FIMAN' AND atm_station_id=@id", engine)
+        print(pd.iloc[0])
+
+    sys.exit()
+
     fiman_gauge_keys = pd.read_csv("data/fiman_gauge_key.csv").query("site_id == @id & Sensor == 'Barometric Pressure'")
     
     new_begin_date = pd.to_datetime(begin_date, utc=True) - timedelta(seconds = 3600)
@@ -214,10 +223,13 @@ def get_fiman_atm(id, begin_date, end_date):
     unnested = doc["onerain"]["response"]["general"]["row"]
     
     r_df = pd.DataFrame.from_dict(unnested)
+    print(r_df.iloc[0])
 
     r_df["date"] = pd.to_datetime(r_df["data_time"], utc=True); r_df["id"] = str(id); r_df["notes"] = "FIMAN"
     
     r_df = r_df.loc[:,["id","date","data_value","notes"]].rename(columns = {"data_value":"pressure_mb"})
+
+    # r_df.to_sql("fiman_data", engine, if_exists = "append", method=postgres_upsert)
     
     return r_df
 
@@ -432,10 +444,12 @@ def main():
 
     # print(query)
 
-    min_date = pd.read_sql_query("SELECT min(date) as date FROM sensor_data WHERE processed='FALSE' AND pressure > 800", engine)
-    max_date = min_date.at[0, 'date'] + timedelta(days=7)
-    max_date = max_date.strftime("%Y-%m-%d")
-    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
+    # min_date = pd.read_sql_query("SELECT min(date) as date FROM sensor_data WHERE processed='FALSE' AND pressure > 800", engine)
+    # max_date = min_date.at[0, 'date'] + timedelta(days=7)
+    # max_date = max_date.strftime("%Y-%m-%d")
+    # query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
+
+    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-07-01'"
 
     try:
         new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
