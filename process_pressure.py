@@ -297,7 +297,7 @@ def interpolate_atm_data(x, engine, debug = True):
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = range_min.strftime("%Y%m%d %H:%M"),
                                             end_date = range_max.strftime("%Y%m%d %H:%M"), 
-                                            engine)
+                                            engine = engine)
                 
                 atm_data = pd.concat([atm_data, d]).drop_duplicates()
                 
@@ -306,7 +306,7 @@ def interpolate_atm_data(x, engine, debug = True):
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = dt_min.strftime("%Y%m%d %H:%M"),
                                             end_date = dt_max.strftime("%Y%m%d %H:%M"),
-                                            engine).drop_duplicates()     
+                                            engine = engine).drop_duplicates()     
             
         if(atm_data.empty):            
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
