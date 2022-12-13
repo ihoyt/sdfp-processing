@@ -194,7 +194,11 @@ def get_fiman_atm(id, begin_date, end_date, engine):
         end_date = pd.to_datetime(end_date).strftime('%Y-%m-%d %H:%M:%S')
         data = pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= '" + begin_date + "' " +
                             "AND date <= '" + end_date + "' AND atm_data_src='FIMAN' AND atm_station_id='" + id +"'", engine) #.sort_values("date").drop_duplicates
-        print(data.iloc[0])
+        r_df["date"] = pd.to_datetime(r_df["date"], utc=True); 
+        r_df["id"] = str(id); 
+        r_df["notes"] = "FIMAN"
+        r_df = r_df.loc[:,["id","date","atm_pressure","notes"]].rename(columns = {"atm_pressure":"pressure_mb"})
+        return r_df
 
     sys.exit()
 
@@ -225,15 +229,12 @@ def get_fiman_atm(id, begin_date, end_date, engine):
     unnested = doc["onerain"]["response"]["general"]["row"]
     
     r_df = pd.DataFrame.from_dict(unnested)
-    print(r_df.iloc[0])
 
     r_df["date"] = pd.to_datetime(r_df["data_time"], utc=True); 
     r_df["id"] = str(id); 
     r_df["notes"] = "FIMAN"
     r_df = r_df.loc[:,["id","date","data_value","notes"]].rename(columns = {"data_value":"pressure_mb"})
 
-    # r_df.to_sql("fiman_data", engine, if_exists = "append", method=postgres_upsert)
-    
     return r_df
 
 #####################
