@@ -169,7 +169,7 @@ def get_isu_atm(id, begin_date, end_date):
     
     return r_df
 
-def get_fiman_atm(id, begin_date, end_date):
+def get_fiman_atm(id, begin_date, end_date, engine):
     """Retrieve atmospheric pressure data from the NOAA tides and currents API
 
     Args:
@@ -239,7 +239,7 @@ def get_fiman_atm(id, begin_date, end_date):
 # atm API functions #
 #####################
 
-def get_atm_pressure(atm_id, atm_src, begin_date, end_date):
+def get_atm_pressure(atm_id, atm_src, begin_date, end_date, engine):
     """Yo, yo, yo, it's a wrapper function!
 
     Args:
@@ -261,12 +261,12 @@ def get_atm_pressure(atm_id, atm_src, begin_date, end_date):
         case "ISU":
             return get_isu_atm(id = atm_id, begin_date = begin_date, end_date = end_date)
         case "FIMAN":
-            return get_fiman_atm(id = atm_id, begin_date = begin_date, end_date = end_date)
+            return get_fiman_atm(id = atm_id, begin_date = begin_date, end_date = end_date, engine)
         case _:
             return "No valid `atm_src` provided! Make sure you are supplying a string"
         
         
-def interpolate_atm_data(x, debug = True):
+def interpolate_atm_data(x, engine, debug = True):
     print(inspect.stack()[0][3])    # print the name of the function we just entered
     place_names = list(x["place"].unique())
     
@@ -296,7 +296,8 @@ def interpolate_atm_data(x, debug = True):
                 d = get_atm_pressure(atm_id = selected_data["atm_station_id"].unique()[0], 
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = range_min.strftime("%Y%m%d %H:%M"),
-                                            end_date = range_max.strftime("%Y%m%d %H:%M"))
+                                            end_date = range_max.strftime("%Y%m%d %H:%M"), 
+                                            engine)
                 
                 atm_data = pd.concat([atm_data, d]).drop_duplicates()
                 
@@ -304,7 +305,8 @@ def interpolate_atm_data(x, debug = True):
                 atm_data = get_atm_pressure(atm_id = selected_data["atm_station_id"].unique()[0], 
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = dt_min.strftime("%Y%m%d %H:%M"),
-                                            end_date = dt_max.strftime("%Y%m%d %H:%M")).drop_duplicates()     
+                                            end_date = dt_max.strftime("%Y%m%d %H:%M"),
+                                            engine).drop_duplicates()     
             
         if(atm_data.empty):            
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
@@ -487,7 +489,7 @@ def main():
     #print(prepared_data.to_string())    # FOR DEBUGGING
     
     try: 
-        interpolated_data = interpolate_atm_data(prepared_data)
+        interpolated_data = interpolate_atm_data(prepared_data, engine)
     except Exception as ex:
         print(traceback.format_exc())
         interpolated_data = pd.DataFrame()
