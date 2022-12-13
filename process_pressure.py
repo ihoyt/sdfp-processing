@@ -261,7 +261,7 @@ def get_atm_pressure(atm_id, atm_src, begin_date, end_date, engine):
         case "ISU":
             return get_isu_atm(id = atm_id, begin_date = begin_date, end_date = end_date)
         case "FIMAN":
-            return get_fiman_atm(id = atm_id, begin_date = begin_date, end_date = end_date, engine)
+            return get_fiman_atm(id = atm_id, begin_date = begin_date, end_date = end_date, engine = engine)
         case _:
             return "No valid `atm_src` provided! Make sure you are supplying a string"
         
