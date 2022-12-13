@@ -188,10 +188,10 @@ def get_fiman_atm(id, begin_date, end_date):
     #
 
     # FIMAN API only allows queries up to 31 days ago, check for existing data from other sensors if further back then that
-    month_ago = datetime.utcnow() - datetime.timedelta(days=31)
+    month_ago = datetime.utcnow() - timedelta(days=31)
     if begin_date < month_ago:
         pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= @begin_date " +
-                            "AND date <= @end_date AND atm_data_src='FIMAN' AND atm_station_id=@id", engine)
+                            "AND date <= @end_date AND atm_data_src='FIMAN' AND atm_station_id=@id", engine).drop_duplicates
         print(pd.iloc[0])
 
     sys.exit()
@@ -225,8 +225,9 @@ def get_fiman_atm(id, begin_date, end_date):
     r_df = pd.DataFrame.from_dict(unnested)
     print(r_df.iloc[0])
 
-    r_df["date"] = pd.to_datetime(r_df["data_time"], utc=True); r_df["id"] = str(id); r_df["notes"] = "FIMAN"
-    
+    r_df["date"] = pd.to_datetime(r_df["data_time"], utc=True); 
+    r_df["id"] = str(id); 
+    r_df["notes"] = "FIMAN"
     r_df = r_df.loc[:,["id","date","data_value","notes"]].rename(columns = {"data_value":"pressure_mb"})
 
     # r_df.to_sql("fiman_data", engine, if_exists = "append", method=postgres_upsert)
@@ -449,7 +450,7 @@ def main():
     # max_date = max_date.strftime("%Y-%m-%d")
     # query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
 
-    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-07-01'"
+    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-06-15'"
 
     try:
         new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
