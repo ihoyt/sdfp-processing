@@ -192,7 +192,7 @@ def get_fiman_atm(id, begin_date, end_date, engine):
     if pd.to_datetime(begin_date) < month_ago:
         begin_date = pd.to_datetime(begin_date).strftime('%Y-%m-%d %H:%M:%S')
         end_date = pd.to_datetime(end_date).strftime('%Y-%m-%d %H:%M:%S')
-        data = pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= '" + begin_date + "' " +
+        r_df = pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= '" + begin_date + "' " +
                             "AND date <= '" + end_date + "' AND atm_data_src='FIMAN' AND atm_station_id='" + id +"'", engine) #.sort_values("date").drop_duplicates
         r_df["date"] = pd.to_datetime(r_df["date"], utc=True); 
         r_df["id"] = str(id); 
