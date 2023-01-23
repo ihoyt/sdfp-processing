@@ -1,5 +1,4 @@
 import os
-import sys
 from unicodedata import numeric
 from pytz import timezone
 import requests
@@ -13,7 +12,6 @@ import numpy as np
 import warnings
 from sqlalchemy import create_engine
 import inspect
-import traceback
 
 ########################
 # Utility functions    #
@@ -97,7 +95,7 @@ def get_noaa_atm(id, begin_date, end_date):
     r_df["notes"] = "coop"
     r_df = r_df.loc[:,["id","t","v","notes"]].rename(columns = {"id":"id","t":"date","v":"pressure_mb"})
 
-    return r_df
+    return r_df.dropna()
     
 def get_nws_atm(id, begin_date, end_date):
     """Retrieve atmospheric pressure data from the NWS API
@@ -169,7 +167,7 @@ def get_isu_atm(id, begin_date, end_date):
     
     return r_df
 
-def get_fiman_atm(id, begin_date, end_date, engine):
+def get_fiman_atm(id, begin_date, end_date):
     """Retrieve atmospheric pressure data from the NOAA tides and currents API
 
     Args:
@@ -186,62 +184,46 @@ def get_fiman_atm(id, begin_date, end_date, engine):
     # It looks like if the data are not long enough (date-wise), the query to fiman will not return anything
     # at which point this will fail.
     #
-
-    # FIMAN API only allows queries up to 31 days ago, check for existing data from other sensors if further back then that
-    month_ago = datetime.utcnow() - timedelta(days=31)
-    if pd.to_datetime(begin_date) < month_ago:
-        begin_date = pd.to_datetime(begin_date).strftime('%Y-%m-%d %H:%M:%S')
-        end_date = pd.to_datetime(end_date).strftime('%Y-%m-%d %H:%M:%S')
-        r_df = pd.read_sql_query("SELECT date, atm_pressure FROM sensor_water_depth WHERE date >= '" + begin_date + "' " +
-                            "AND date <= '" + end_date + "' AND atm_data_src='FIMAN' AND atm_station_id='" + id +"'", engine) #.sort_values("date").drop_duplicates
-        r_df["date"] = pd.to_datetime(r_df["date"], utc=True); 
-        r_df["id"] = str(id); 
-        r_df["notes"] = "FIMAN"
-        r_df = r_df.loc[:,["id","date","atm_pressure","notes"]].rename(columns = {"atm_pressure":"pressure_mb"})
-        return r_df
-
-    sys.exit()
-
-    fiman_gauge_keys = pd.read_csv("data/fiman_gauge_key.csv").query("site_id == @id & Sensor == 'Barometric Pressure'")
+    
+    # fiman_gauge_keys = pd.read_csv("data/fiman_gauge_key.csv").query("site_id == @id & Sensor == 'Barometric Pressure'")
     
     new_begin_date = pd.to_datetime(begin_date, utc=True) - timedelta(seconds = 3600)
     new_end_date = pd.to_datetime(end_date, utc=True) + timedelta(seconds = 3600)
-    
-    query = {'site_id' : fiman_gauge_keys.iloc[0]["site_id"],
-             'data_start' : new_begin_date.strftime('%Y-%m-%d %H:%M:%S'),
-             'end_date' : new_end_date.strftime('%Y-%m-%d %H:%M:%S'),
-             'format_datetime' : '%Y-%m-%d %H:%M:%S',
-             'tz' : 'utc',
-             'show_raw' : True,
-             'show_quality' : True,
-             'sensor_id' : fiman_gauge_keys.iloc[0]["sensor_id"]}
-    print(query)    # FOR DEBUGGING
-    
-    # try:
-    r = requests.get(os.environ.get("FIMAN_URL"), params=query, timeout=600)
-    # except requests.exceptions.Timeout:
-    #     return pd.DataFrame()
 
-    j = r.content
-    print(j)
-    doc = xmltodict.parse(j)
+    r_df = pd.read_sql_query("SELECT * FROM external_api_data WHERE id='@id' AND api_name='FIMAN' AND type='pressure' AND date >= @new_begin_date AND date <= @new_end_date", engine).sort_values(['date']).drop_duplicates()
     
-    unnested = doc["onerain"]["response"]["general"]["row"]
+    # query = {'site_id' : fiman_gauge_keys.iloc[0]["site_id"],
+    #          'data_start' : new_begin_date.strftime('%Y-%m-%d %H:%M:%S'),
+    #          'end_date' : new_end_date.strftime('%Y-%m-%d %H:%M:%S'),
+    #          'format_datetime' : '%Y-%m-%d %H:%M:%S',
+    #          'tz' : 'utc',
+    #          'show_raw' : True,
+    #          'show_quality' : True,
+    #          'sensor_id' : fiman_gauge_keys.iloc[0]["sensor_id"]}
+    # print(query)    # FOR DEBUGGING
     
-    r_df = pd.DataFrame.from_dict(unnested)
-
-    r_df["date"] = pd.to_datetime(r_df["data_time"], utc=True); 
-    r_df["id"] = str(id); 
-    r_df["notes"] = "FIMAN"
-    r_df = r_df.loc[:,["id","date","data_value","notes"]].rename(columns = {"data_value":"pressure_mb"})
-
+    # r = requests.get(os.environ.get("FIMAN_URL"), params=query)
+    # j = r.content
+    # print(j)
+    # doc = xmltodict.parse(j)
+    
+    # unnested = doc["onerain"]["response"]["general"]["row"]
+    
+    # r_df = pd.DataFrame.from_dict(unnested)
+    print("FIMAN DATA RETRIEVED FROM DATABASE")
+    r_df["date"] = pd.to_datetime(r_df["date"], utc=True); 
+    # r_df["id"] = str(id); 
+    # r_df["notes"] = "FIMAN"
+    
+    r_df = r_df.loc[:,["id","date","value","api_name"]].rename(columns = {"value":"pressure_mb", "api_name":"notes"})
+    
     return r_df
 
 #####################
 # atm API functions #
 #####################
 
-def get_atm_pressure(atm_id, atm_src, begin_date, end_date, engine):
+def get_atm_pressure(atm_id, atm_src, begin_date, end_date):
     """Yo, yo, yo, it's a wrapper function!
 
     Args:
@@ -263,12 +245,12 @@ def get_atm_pressure(atm_id, atm_src, begin_date, end_date, engine):
         case "ISU":
             return get_isu_atm(id = atm_id, begin_date = begin_date, end_date = end_date)
         case "FIMAN":
-            return get_fiman_atm(id = atm_id, begin_date = begin_date, end_date = end_date, engine = engine)
+            return get_fiman_atm(id = atm_id, begin_date = begin_date, end_date = end_date)
         case _:
             return "No valid `atm_src` provided! Make sure you are supplying a string"
         
         
-def interpolate_atm_data(x, engine, debug = True):
+def interpolate_atm_data(x, debug = True):
     print(inspect.stack()[0][3])    # print the name of the function we just entered
     place_names = list(x["place"].unique())
     
@@ -298,8 +280,7 @@ def interpolate_atm_data(x, engine, debug = True):
                 d = get_atm_pressure(atm_id = selected_data["atm_station_id"].unique()[0], 
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = range_min.strftime("%Y%m%d %H:%M"),
-                                            end_date = range_max.strftime("%Y%m%d %H:%M"), 
-                                            engine = engine)
+                                            end_date = range_max.strftime("%Y%m%d %H:%M"))
                 
                 atm_data = pd.concat([atm_data, d]).drop_duplicates()
                 
@@ -307,23 +288,16 @@ def interpolate_atm_data(x, engine, debug = True):
                 atm_data = get_atm_pressure(atm_id = selected_data["atm_station_id"].unique()[0], 
                                             atm_src = selected_data["atm_data_src"].unique()[0], 
                                             begin_date = dt_min.strftime("%Y%m%d %H:%M"),
-                                            end_date = dt_max.strftime("%Y%m%d %H:%M"),
-                                            engine = engine).drop_duplicates()     
+                                            end_date = dt_max.strftime("%Y%m%d %H:%M")).drop_duplicates()     
             
         if(atm_data.empty):            
             warnings.warn(message = f"No atm pressure data available for: {selected_place}")
             pass
-        else:              
-            # for index, row in atm_data.iterrows():
-            #     print(row['pressure_mb'])
-
-            # sys.exit()
-            # print(selected_data.iloc[0])
-            # print(atm_data.iloc[0])
-            combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
-            # print(combined_data.iloc[0])
-            combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
-            interpolated_data = pd.concat([interpolated_data, combined_data.loc[combined_data["place"].notna()].reset_index()[list(selected_data)]])
+                        
+        combined_data = pd.concat([selected_data.query("date > @atm_data['date'].min() & date < @atm_data['date'].max()") , atm_data]).sort_values("date").set_index("date")
+        combined_data["pressure_mb"] = combined_data["pressure_mb"].astype(float).interpolate(method='time')
+                
+        interpolated_data = pd.concat([interpolated_data, combined_data.loc[combined_data["place"].notna()].reset_index()[list(selected_data)]])
 
         if debug == True:
             print("####################################")
@@ -406,12 +380,6 @@ def format_interpolated_data(x):
     
     return formatted_data.drop_duplicates()
 
-def validate_date(date_text):
-        try:
-            datetime.strptime(date_text, '%Y-%m-%d')
-        except ValueError:
-            raise ValueError("Incorrect data format, should be YYYY-MM-DD")
-
 
 def main():
     print("Entering main of process_pressure.py")
@@ -432,33 +400,8 @@ def main():
     # Collect new data  #
     #####################
 
-    # max_date = pd.read_sql_query("SELECT max(date) as date FROM sensor_water_depth", engine)
-    # max_date = max_date.at[0, 'date'] + timedelta(days=3)
-    # max_date = max_date.strftime("%Y-%m-%d")
-    # print(max_date)
-
-    # end_date = os.environ.get('END_DATE')
-    # if end_date:
-    #     try:
-    #         validate_date(end_date)
-    #         query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + end_date + "'"
-    #     except ValueError:
-    #         print("End date is invalid")
-    #         return
-    # else:
-    #     query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date > '2022-12-01'"
-
-    # print(query)
-
-    # min_date = pd.read_sql_query("SELECT min(date) as date FROM sensor_data WHERE processed='FALSE' AND pressure > 800", engine)
-    # max_date = min_date.at[0, 'date'] + timedelta(days=7)
-    # max_date = max_date.strftime("%Y-%m-%d")
-    # query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '" + max_date + "'"
-
-    query = "SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date < '2022-06-07'"
-
     try:
-        new_data = pd.read_sql_query(query, engine).sort_values(['place','date']).drop_duplicates()
+        new_data = pd.read_sql_query("SELECT * FROM sensor_data WHERE processed = 'FALSE' AND pressure > 800 AND date > 2022-11-01", engine).sort_values(['place','date']).drop_duplicates()
     except Exception as ex:
         new_data = pd.DataFrame()
         warnings.warn("Connection to database failed to return data")
@@ -491,9 +434,8 @@ def main():
     #print(prepared_data.to_string())    # FOR DEBUGGING
     
     try: 
-        interpolated_data = interpolate_atm_data(prepared_data, engine)
+        interpolated_data = interpolate_atm_data(prepared_data)
     except Exception as ex:
-        print(traceback.format_exc())
         interpolated_data = pd.DataFrame()
         warnings.warn("Error interpolating atmospheric pressure data.")
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
